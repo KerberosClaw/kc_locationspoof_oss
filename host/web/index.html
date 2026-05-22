@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>kc_locationspoof</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    #map { height: 100vh; width: 100vw; }
+    #panel {
+      position: absolute; top: 12px; right: 12px; z-index: 1000;
+      background: rgba(255, 255, 255, 0.96);
+      padding: 12px 14px; border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+      font-size: 13px; min-width: 240px;
+    }
+    .title { font-weight: 600; margin-bottom: 6px; }
+    .row { margin: 4px 0; }
+    .hint { color: #666; font-size: 12px; }
+    button {
+      padding: 6px 12px; border: 1px solid #ccc; background: #fff;
+      border-radius: 6px; cursor: pointer; font-size: 13px;
+    }
+    button:hover { background: #f5f5f5; }
+    button:active { background: #eee; }
+    .status-ok { color: #0a7; }
+    .status-err { color: #d33; }
+    .status-idle { color: #888; }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<div id="panel">
+  <div class="title">kc_locationspoof</div>
+  <div class="row" id="status">
+    <span class="status-idle">未注入</span>
+  </div>
+  <div class="row hint">右鍵（手機長按）地圖選位置</div>
+  <div class="row"><button id="clearBtn">清除 spoof</button></div>
+</div>
+
+<script>
+const API = '';  // same origin
+const map = L.map('map').setView([24.1596, 120.6470], 13);  // Taichung default
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
+
+let marker = null;
+const statusEl = document.getElementById('status');
+
+function setStatus(text, cls) {
+  statusEl.innerHTML = `<span class="${cls}">${text}</span>`;
+}
+
+async function setLocation(lat, lon) {
+  try {
+    const r = await fetch(`${API}/api/loc?lat=${lat}&lon=${lon}`);
+    const j = await r.json();
+    if (j.ok) {
+      setStatus(`已注入 ${lat.toFixed(6)}, ${lon.toFixed(6)} (seq=${j.seq})`, 'status-ok');
+    } else {
+      setStatus(`錯誤: ${j.error || '未知'}`, 'status-err');
+    }
+  } catch (e) {
+    setStatus(`失敗: ${e.message}`, 'status-err');
+  }
+}
+
+function placeMarker(lat, lon) {
+  if (marker) map.removeLayer(marker);
+  marker = L.marker([lat, lon]).addTo(map);
+}
+
+map.on('contextmenu', (e) => {
+  const { lat, lng } = e.latlng;
+  if (!confirm(`注入位置？\n\n緯度: ${lat.toFixed(6)}\n經度: ${lng.toFixed(6)}`)) return;
+  placeMarker(lat, lng);
+  setLocation(lat, lng);
+});
+
+document.getElementById('clearBtn').onclick = async () => {
+  try {
+    const r = await fetch(`${API}/api/clear`, { method: 'POST' });
+    const j = await r.json();
+    if (j.ok) {
+      if (marker) { map.removeLayer(marker); marker = null; }
+      setStatus('已清除，回真實 GPS', 'status-idle');
+    } else {
+      setStatus(`清除失敗: ${j.error || '未知'}`, 'status-err');
+    }
+  } catch (e) {
+    setStatus(`清除失敗: ${e.message}`, 'status-err');
+  }
+};
+
+// Restore state from daemon on page load
+fetch(`${API}/api/status`).then(r => r.json()).then(j => {
+  if (j.last_loc) {
+    const [lat, lon] = j.last_loc;
+    placeMarker(lat, lon);
+    map.setView([lat, lon], 13);
+    setStatus(`已注入 ${lat.toFixed(6)}, ${lon.toFixed(6)} (seq=${j.last_seq})`, 'status-ok');
+  }
+}).catch(() => {});
+</script>
+</body>
+</html>

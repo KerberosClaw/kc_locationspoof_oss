@@ -1,0 +1,539 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3AD27C762FA8C73600C6CF03 /* locspoof-helper in Phase A (helper executable) */ = {isa = PBXBuildFile; fileRef = 3AB62A4F2FA8C3E70098FAAB /* locspoof-helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		3AD27C782FA8C76800C6CF03 /* org.locspoof.app.helper.plist in  Phase B (LaunchDaemon plist) */ = {isa = PBXBuildFile; fileRef = 3AD27C722FA8C66300C6CF03 /* org.locspoof.app.helper.plist */; };
+		3AD27C7A2FA8C78B00C6CF03 /* dvt-location-stream in Phase C (PMD binaries) */ = {isa = PBXBuildFile; fileRef = 3AD27C6F2FA8C66300C6CF03 /* dvt-location-stream */; };
+		3AD27C7B2FA8C78B00C6CF03 /* pymobiledevice3 in Phase C (PMD binaries) */ = {isa = PBXBuildFile; fileRef = 3AD27C712FA8C66300C6CF03 /* pymobiledevice3 */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3AD27C732FA8C6D600C6CF03 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3A7E48A22FA8AA8B00923119 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3AB62A4E2FA8C3E70098FAAB;
+			remoteInfo = "locspoof-helper";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3AB62A4D2FA8C3E70098FAAB /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		3AD27C752FA8C6F000C6CF03 /* Phase A (helper executable) */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				3AD27C762FA8C73600C6CF03 /* locspoof-helper in Phase A (helper executable) */,
+			);
+			name = "Phase A (helper executable)";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AD27C772FA8C74900C6CF03 /*  Phase B (LaunchDaemon plist) */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LaunchDaemons;
+			dstSubfolderSpec = 1;
+			files = (
+				3AD27C782FA8C76800C6CF03 /* org.locspoof.app.helper.plist in  Phase B (LaunchDaemon plist) */,
+			);
+			name = " Phase B (LaunchDaemon plist)";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AD27C792FA8C77200C6CF03 /* Phase C (PMD binaries) */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Resources/bin;
+			dstSubfolderSpec = 1;
+			files = (
+				3AD27C7A2FA8C78B00C6CF03 /* dvt-location-stream in Phase C (PMD binaries) */,
+				3AD27C7B2FA8C78B00C6CF03 /* pymobiledevice3 in Phase C (PMD binaries) */,
+			);
+			name = "Phase C (PMD binaries)";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		3A77CFA32FA8BDA0001E615B /* locspoof.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = locspoof.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3AB62A4F2FA8C3E70098FAAB /* locspoof-helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "locspoof-helper"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3AD27C6F2FA8C66300C6CF03 /* dvt-location-stream */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = "dvt-location-stream"; path = "host/bin/dvt-location-stream"; sourceTree = "<group>"; };
+		3AD27C702FA8C66300C6CF03 /* locspoof-helper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = "locspoof-helper.entitlements"; path = "support/locspoof-helper.entitlements"; sourceTree = "<group>"; };
+		3AD27C712FA8C66300C6CF03 /* pymobiledevice3 */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = pymobiledevice3; path = host/bin/pymobiledevice3; sourceTree = "<group>"; };
+		3AD27C722FA8C66300C6CF03 /* org.locspoof.app.helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = org.locspoof.app.helper.plist; path = support/org.locspoof.app.helper.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		3A77CFA42FA8BDA0001E615B /* locspoof */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = locspoof;
+			sourceTree = "<group>";
+		};
+		3AB62A502FA8C3E70098FAAB /* locspoof-helper */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "locspoof-helper";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3A77CFA02FA8BDA0001E615B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AB62A4C2FA8C3E70098FAAB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		3A7E48A12FA8AA8B00923119 = {
+			isa = PBXGroup;
+			children = (
+				3AD27C6F2FA8C66300C6CF03 /* dvt-location-stream */,
+				3AD27C702FA8C66300C6CF03 /* locspoof-helper.entitlements */,
+				3AD27C712FA8C66300C6CF03 /* pymobiledevice3 */,
+				3AD27C722FA8C66300C6CF03 /* org.locspoof.app.helper.plist */,
+				3A77CFA42FA8BDA0001E615B /* locspoof */,
+				3AB62A502FA8C3E70098FAAB /* locspoof-helper */,
+				3A7E48AB2FA8AA8B00923119 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		3A7E48AB2FA8AA8B00923119 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3A77CFA32FA8BDA0001E615B /* locspoof.app */,
+				3AB62A4F2FA8C3E70098FAAB /* locspoof-helper */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3A77CFA22FA8BDA0001E615B /* locspoof */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3A77CFAD2FA8BDA1001E615B /* Build configuration list for PBXNativeTarget "locspoof" */;
+			buildPhases = (
+				3A77CF9F2FA8BDA0001E615B /* Sources */,
+				3A77CFA02FA8BDA0001E615B /* Frameworks */,
+				3A77CFA12FA8BDA0001E615B /* Resources */,
+				3AD27C752FA8C6F000C6CF03 /* Phase A (helper executable) */,
+				3AD27C772FA8C74900C6CF03 /*  Phase B (LaunchDaemon plist) */,
+				3AD27C792FA8C77200C6CF03 /* Phase C (PMD binaries) */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3AD27C742FA8C6D600C6CF03 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				3A77CFA42FA8BDA0001E615B /* locspoof */,
+			);
+			name = locspoof;
+			packageProductDependencies = (
+			);
+			productName = locspoof;
+			productReference = 3A77CFA32FA8BDA0001E615B /* locspoof.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3AB62A4E2FA8C3E70098FAAB /* locspoof-helper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3AB62A532FA8C3E70098FAAB /* Build configuration list for PBXNativeTarget "locspoof-helper" */;
+			buildPhases = (
+				3AB62A4B2FA8C3E70098FAAB /* Sources */,
+				3AB62A4C2FA8C3E70098FAAB /* Frameworks */,
+				3AB62A4D2FA8C3E70098FAAB /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3AB62A502FA8C3E70098FAAB /* locspoof-helper */,
+			);
+			name = "locspoof-helper";
+			packageProductDependencies = (
+			);
+			productName = "locspoof-helper";
+			productReference = 3AB62A4F2FA8C3E70098FAAB /* locspoof-helper */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3A7E48A22FA8AA8B00923119 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2640;
+				LastUpgradeCheck = 2640;
+				TargetAttributes = {
+					3A77CFA22FA8BDA0001E615B = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
+					3AB62A4E2FA8C3E70098FAAB = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
+				};
+			};
+			buildConfigurationList = 3A7E48A52FA8AA8B00923119 /* Build configuration list for PBXProject "kc_locationspoof" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 3A7E48A12FA8AA8B00923119;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 3A7E48AB2FA8AA8B00923119 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				3A77CFA22FA8BDA0001E615B /* locspoof */,
+				3AB62A4E2FA8C3E70098FAAB /* locspoof-helper */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3A77CFA12FA8BDA0001E615B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3A77CF9F2FA8BDA0001E615B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AB62A4B2FA8C3E70098FAAB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3AD27C742FA8C6D600C6CF03 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3AB62A4E2FA8C3E70098FAAB /* locspoof-helper */;
+			targetProxy = 3AD27C732FA8C6D600C6CF03 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		3A77CFAB2FA8BDA1001E615B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.locspoof.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		3A77CFAC2FA8BDA1001E615B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.locspoof.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		3A7E48B32FA8AA8C00923119 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		3A7E48B42FA8AA8C00923119 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		3AB62A542FA8C3E70098FAAB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "support/locspoof-helper.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleIdentifier = org.locspoof.app.helper;
+				INFOPLIST_KEY_CFBundleName = "locspoof-helper";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.locspoof.app.helper;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		3AB62A552FA8C3E70098FAAB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "support/locspoof-helper.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleIdentifier = org.locspoof.app.helper;
+				INFOPLIST_KEY_CFBundleName = "locspoof-helper";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.locspoof.app.helper;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3A77CFAD2FA8BDA1001E615B /* Build configuration list for PBXNativeTarget "locspoof" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3A77CFAB2FA8BDA1001E615B /* Debug */,
+				3A77CFAC2FA8BDA1001E615B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3A7E48A52FA8AA8B00923119 /* Build configuration list for PBXProject "kc_locationspoof" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3A7E48B32FA8AA8C00923119 /* Debug */,
+				3A7E48B42FA8AA8C00923119 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3AB62A532FA8C3E70098FAAB /* Build configuration list for PBXNativeTarget "locspoof-helper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3AB62A542FA8C3E70098FAAB /* Debug */,
+				3AB62A552FA8C3E70098FAAB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3A7E48A22FA8AA8B00923119 /* Project object */;
+}

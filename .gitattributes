@@ -1,0 +1,8 @@
+# Treat PyInstaller-bundled binaries as binary, exclude from language stats
+host/bin/* binary linguist-vendored=true
+
+# Vendored web assets (Leaflet etc) shouldn't dominate language detection
+host/web/* linguist-vendored=true
+
+# Generated icon assets
+locspoof/Assets.xcassets/** linguist-generated=true

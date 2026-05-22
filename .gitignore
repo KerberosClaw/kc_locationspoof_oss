@@ -1,0 +1,44 @@
+# macOS
+.DS_Store
+
+# Xcode user-specific
+xcuserdata/
+*.xcuserstate
+*.xcuserstatemodel
+
+# Xcode build output
+build/
+DerivedData/
+*.xcscmblueprint
+*.xccheckout
+
+# Swift Package Manager
+.build/
+Packages/
+Package.pins
+Package.resolved
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# CocoaPods (not used, but just in case)
+Pods/
+
+# Carthage (not used)
+Carthage/Build/
+
+# fastlane (not used)
+fastlane/report.xml
+fastlane/screenshots/
+
+# Misc
+*.swp
+*.swo
+*~
+
+# Python (pikmin/ module)
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# Claude Code worktrees / metadata
+.claude/
