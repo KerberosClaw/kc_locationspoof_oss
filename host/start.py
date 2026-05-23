@@ -27,6 +27,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PMD_BIN = os.environ.get("PYMOBILEDEVICE3_BIN", os.path.join(HERE, "bin", "pymobiledevice3"))
 DVT_BIN = os.environ.get("DVT_STREAM_BIN", os.path.join(HERE, "bin", "dvt-location-stream"))
 PORT = int(os.environ.get("PORT", "8765"))
+BIND_HOST = os.environ.get("BIND_HOST", "127.0.0.1")
+RECOVERABLE_DVT_ERROR_MARKERS = (
+    "Broken pipe",
+    "Connection reset",
+    "Connection aborted",
+)
 
 
 class State:
@@ -77,13 +83,76 @@ def start_dvt_stream() -> None:
     print("[dvt] stream ready", flush=True)
 
 
+def stop_dvt_stream(send_quit: bool = False) -> None:
+    proc = state.dvt_proc
+    state.dvt_proc = None
+    if not proc:
+        return
+
+    if send_quit and proc.poll() is None and proc.stdin:
+        try:
+            proc.stdin.write("QUIT\n")
+            proc.stdin.flush()
+            proc.wait(timeout=3)
+        except Exception:
+            pass
+
+    for stream in (proc.stdin, proc.stdout):
+        try:
+            if stream:
+                stream.close()
+        except Exception:
+            pass
+
+    if proc.poll() is None:
+        proc.terminate()
+        try:
+            proc.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+
+
+def restart_dvt_stream(reason: str) -> None:
+    print(f"[dvt] restarting stream after {reason}", flush=True)
+    stop_dvt_stream(send_quit=False)
+    start_dvt_stream()
+
+
+def is_recoverable_dvt_response(resp: str) -> bool:
+    if not resp:
+        return True
+    return resp.startswith("ERR") and any(
+        marker in resp for marker in RECOVERABLE_DVT_ERROR_MARKERS
+    )
+
+
+def exchange_dvt_command(cmd: str, *, retry: bool = True) -> str:
+    proc = state.dvt_proc
+    if proc is None or proc.poll() is not None:
+        restart_dvt_stream("process not running")
+        proc = state.dvt_proc
+
+    try:
+        proc.stdin.write(cmd)
+        proc.stdin.flush()
+    except (BrokenPipeError, OSError) as error:
+        if not retry:
+            raise
+        restart_dvt_stream(f"write failed: {error}")
+        return exchange_dvt_command(cmd, retry=False)
+
+    resp = proc.stdout.readline().strip()
+    if retry and is_recoverable_dvt_response(resp):
+        restart_dvt_stream(f"recoverable response: {resp or '<eof>'}")
+        return exchange_dvt_command(cmd, retry=False)
+    return resp
+
+
 def inject(lat: float, lon: float) -> int:
     with state.lock:
         state.last_seq += 1
         seq = state.last_seq
-        state.dvt_proc.stdin.write(f"{seq},{lat},{lon}\n")
-        state.dvt_proc.stdin.flush()
-        resp = state.dvt_proc.stdout.readline().strip()
+        resp = exchange_dvt_command(f"{seq},{lat},{lon}\n")
         if not resp.startswith(f"OK {seq}"):
             raise RuntimeError(f"dvt stream rejected: {resp}")
         state.last_loc = (lat, lon)
@@ -92,9 +161,7 @@ def inject(lat: float, lon: float) -> int:
 
 def clear() -> None:
     with state.lock:
-        state.dvt_proc.stdin.write("CLEAR\n")
-        state.dvt_proc.stdin.flush()
-        resp = state.dvt_proc.stdout.readline().strip()
+        resp = exchange_dvt_command("CLEAR\n")
         if resp != "CLEARED":
             raise RuntimeError(f"clear failed: {resp}")
         state.last_loc = None
@@ -166,13 +233,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def cleanup() -> None:
     print("[shutdown] cleaning up", flush=True)
-    if state.dvt_proc and state.dvt_proc.poll() is None:
-        try:
-            state.dvt_proc.stdin.write("QUIT\n")
-            state.dvt_proc.stdin.flush()
-            state.dvt_proc.wait(timeout=5)
-        except Exception:
-            state.dvt_proc.terminate()
+    stop_dvt_stream(send_quit=True)
     if state.tunnel_proc and state.tunnel_proc.poll() is None:
         state.tunnel_proc.terminate()
         try:
@@ -198,8 +259,8 @@ def main() -> int:
         cleanup()
         return 2
 
-    server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
-    print(f"[http] listening on http://0.0.0.0:{PORT}", flush=True)
+    server = ThreadingHTTPServer((BIND_HOST, PORT), Handler)
+    print(f"[http] listening on http://{BIND_HOST}:{PORT}", flush=True)
     print("  GET  /api/loc?lat=...&lon=...", flush=True)
     print("  GET  /api/status", flush=True)
     print("  POST /api/clear", flush=True)

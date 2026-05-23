@@ -7,38 +7,681 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-    #map { height: 100vh; width: 100vw; }
+    :root {
+      --hd-paper: #fbf6ee;
+      --hd-paper-grid: rgba(45, 42, 38, 0.06);
+      --hd-ink: #2d2a26;
+      --hd-pencil: #5a564d;
+      --hd-red: #e84a3a;
+      --hd-yellow: #f7c84b;
+      --hd-blue: #4a86e0;
+      --hd-green: #4fb585;
+      --hd-pink: #e8779e;
+      --hd-highlighter: rgba(247, 200, 75, 0.5);
+      --radius-rough: 24px 18px 22px 16px / 16px 22px 18px 24px;
+      --font-display: 'Comic Sans MS', 'Marker Felt', 'PingFang TC', 'Noto Sans TC', sans-serif;
+      --font-body: 'PingFang TC', 'Noto Sans TC', system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--hd-ink);
+      font-family: var(--font-body);
+      background-color: var(--hd-paper);
+      background-image:
+        linear-gradient(var(--hd-paper-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--hd-paper-grid) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      width: 280px;
+      height: 220px;
+      top: 25%;
+      right: 4%;
+      background: radial-gradient(ellipse, rgba(120, 80, 50, 0.10) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 700;
+    }
+
+    #map {
+      height: 100vh;
+      width: 100vw;
+      background: var(--hd-paper);
+    }
+
+    #map::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 650;
+      background-image:
+        linear-gradient(rgba(45, 42, 38, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(45, 42, 38, 0.045) 1px, transparent 1px);
+      background-size: 20px 20px;
+      mix-blend-mode: multiply;
+      opacity: 0.55;
+    }
+
+    .leaflet-tile {
+      filter: saturate(0.78) contrast(0.96) sepia(0.12);
+    }
+
+    .leaflet-control-zoom a {
+      background: var(--hd-paper) !important;
+      border: 2px solid var(--hd-ink) !important;
+      color: var(--hd-ink) !important;
+      font-family: var(--font-display);
+      box-shadow: 2px 2px 0 var(--hd-ink);
+    }
+
     #panel {
-      position: absolute; top: 12px; right: 12px; z-index: 1000;
-      background: rgba(255, 255, 255, 0.96);
-      padding: 12px 14px; border-radius: 10px;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
-      font-size: 13px; min-width: 240px;
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 1000;
+      width: min(330px, calc(100vw - 28px));
+      background-color: rgba(251, 246, 238, 0.97);
+      background-image:
+        linear-gradient(var(--hd-paper-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--hd-paper-grid) 1px, transparent 1px);
+      background-size: 18px 18px;
+      padding: 18px 18px 20px;
+      border: 3px solid var(--hd-ink);
+      border-radius: var(--radius-rough);
+      box-shadow:
+        7px 8px 0 rgba(45, 42, 38, 0.95),
+        0 12px 22px rgba(45, 42, 38, 0.18);
+      font-size: 14px;
+      transform: rotate(-0.6deg);
     }
-    .title { font-weight: 600; margin-bottom: 6px; }
-    .row { margin: 4px 0; }
-    .hint { color: #666; font-size: 12px; }
+
+    #panel::before {
+      content: '';
+      position: absolute;
+      top: -13px;
+      left: 50%;
+      transform: translateX(-50%) rotate(-4deg);
+      width: 76px;
+      height: 23px;
+      background: rgba(255, 255, 255, 0.48);
+      border: 1px solid rgba(45, 42, 38, 0.16);
+      box-shadow: 0 1px 4px rgba(45, 42, 38, 0.08);
+    }
+
+    #panel::after {
+      content: '✦';
+      position: absolute;
+      right: 12px;
+      bottom: 8px;
+      color: var(--hd-yellow);
+      font-family: var(--font-display);
+      font-size: 23px;
+      text-shadow: 1px 1px 0 var(--hd-ink);
+      transform: rotate(14deg);
+      pointer-events: none;
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-family: var(--font-display);
+      font-size: 25px;
+      font-weight: 800;
+      line-height: 1.05;
+      transform: rotate(-1.2deg);
+    }
+
+    .crayon-circle {
+      position: relative;
+      display: inline-block;
+      padding: 0 4px;
+    }
+
+    .crayon-circle::after {
+      content: '';
+      position: absolute;
+      inset: -5px -9px;
+      border: 3px solid var(--hd-red);
+      border-radius: 50% 60% 45% 55% / 50% 45% 60% 50%;
+      transform: rotate(-4deg);
+      opacity: 0.76;
+      pointer-events: none;
+    }
+
+    .hand-arrow {
+      flex: 0 0 auto;
+      width: 62px;
+      height: 24px;
+      transform: rotate(4deg);
+    }
+
+    .row { margin: 7px 0; }
+
+    .hint {
+      color: var(--hd-pencil);
+      font-size: 13px;
+      line-height: 1.45;
+      font-style: italic;
+    }
+
+    #status {
+      margin: 10px 0 9px;
+      padding: 10px 12px 12px;
+      background: rgba(247, 200, 75, 0.72);
+      border: 2px solid var(--hd-ink);
+      border-radius: 16px 20px 14px 22px / 18px 14px 20px 16px;
+      box-shadow: 3px 3px 0 rgba(45, 42, 38, 0.92);
+      transform: rotate(0.8deg);
+      font-family: var(--font-display);
+      line-height: 1.35;
+    }
+
+    .actions {
+      display: flex;
+      gap: 9px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 4px 0 7px;
+      transform: rotate(-0.5deg);
+    }
+
+    .legend span { display: inline-flex; align-items: center; gap: 4px; }
+
+    .swatch {
+      width: 24px;
+      height: 4px;
+      display: inline-block;
+      border-radius: 999px;
+      box-shadow: 0 1px 0 rgba(45, 42, 38, 0.42);
+    }
+
+    .swatch-plan { background: repeating-linear-gradient(90deg, #f59f00 0 8px, transparent 8px 13px); }
+    .swatch-trail { background: var(--hd-green); }
+    .swatch-queue { background: repeating-linear-gradient(90deg, var(--hd-blue) 0 5px, transparent 5px 10px); }
+
+    #walkControls {
+      margin: 10px 0 6px;
+      padding: 10px 12px;
+      background: rgba(232, 119, 158, 0.28);
+      border: 2px dashed rgba(45, 42, 38, 0.66);
+      border-radius: 20px 16px 22px 14px / 14px 20px 16px 22px;
+      transform: rotate(0.45deg);
+    }
+
+    .field {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 8px 0;
+    }
+
+    .field label {
+      color: var(--hd-ink);
+      min-width: 42px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      transform: rotate(-1deg);
+    }
+
+    select, input {
+      min-height: 34px;
+      border: 2px solid var(--hd-ink);
+      border-radius: 14px 10px 16px 12px / 12px 16px 10px 14px;
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--hd-ink);
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 5px 8px;
+      box-shadow: 2px 2px 0 rgba(45, 42, 38, 0.92);
+    }
+
+    select:focus, input:focus, button:focus-visible {
+      outline: 3px solid rgba(74, 134, 224, 0.35);
+      outline-offset: 2px;
+    }
+
+    input[type="number"] { width: 64px; }
+
     button {
-      padding: 6px 12px; border: 1px solid #ccc; background: #fff;
-      border-radius: 6px; cursor: pointer; font-size: 13px;
+      padding: 9px 12px 10px;
+      border: 2px solid var(--hd-ink);
+      background: var(--hd-yellow);
+      color: var(--hd-ink);
+      border-radius: var(--radius-rough);
+      cursor: pointer;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 14px;
+      line-height: 1;
+      box-shadow: 3px 3px 0 var(--hd-ink);
+      transform: rotate(-1deg);
+      transition: transform 120ms ease, box-shadow 120ms ease;
     }
-    button:hover { background: #f5f5f5; }
-    button:active { background: #eee; }
-    .status-ok { color: #0a7; }
-    .status-err { color: #d33; }
-    .status-idle { color: #888; }
+
+    #locateBtn { background: var(--hd-blue); color: white; transform: rotate(0.8deg); }
+    #stopWalkBtn { background: var(--hd-pink); transform: rotate(-0.5deg); }
+    #clearBtn { background: var(--hd-red); color: var(--hd-paper); transform: rotate(1.1deg); }
+
+    button:disabled {
+      color: rgba(45, 42, 38, 0.45);
+      background: #ded6c7;
+      cursor: progress;
+      box-shadow: 2px 2px 0 rgba(45, 42, 38, 0.45);
+    }
+
+    button:not(:disabled):hover {
+      transform: rotate(-2deg) translateY(-2px);
+      box-shadow: 5px 5px 0 var(--hd-ink);
+    }
+
+    button:not(:disabled):active {
+      transform: rotate(0deg) translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--hd-ink);
+    }
+
+    .status-ok { color: #106b4f; }
+    .status-err { color: #b92f25; }
+    .status-idle { color: var(--hd-pencil); }
+
+    .panel-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .panel-tools {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    #themeSelect { max-width: 118px; }
+    #collapseBtn { padding-inline: 10px; }
+    #panel.is-collapsed #panelBody { display: none; }
+    #panel.is-collapsed { width: auto; min-width: 250px; }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    body:not(.theme-handdrawn) {
+      margin: 0;
+      color: #111;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #fff;
+    }
+
+    body:not(.theme-handdrawn)::before { content: none; }
+    body:not(.theme-handdrawn) #map { height: 100vh; width: 100vw; background: #fff; }
+    body:not(.theme-handdrawn) #map::after { content: none; }
+    body:not(.theme-handdrawn) .leaflet-tile { filter: none; }
+
+    body:not(.theme-handdrawn) .leaflet-control-zoom a {
+      background: #fff !important;
+      border: 1px solid #ccc !important;
+      color: #111 !important;
+      font-family: inherit;
+      box-shadow: none;
+    }
+
+    body:not(.theme-handdrawn) #panel {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 1000;
+      width: auto;
+      min-width: 282px;
+      max-width: min(360px, calc(100vw - 24px));
+      background: rgba(255, 255, 255, 0.96);
+      padding: 12px 14px;
+      border: 0;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+      font-size: 13px;
+      transform: none;
+    }
+
+    body:not(.theme-handdrawn) #panel::before,
+    body:not(.theme-handdrawn) #panel::after {
+      content: none;
+    }
+
+    body:not(.theme-handdrawn) .panel-header {
+      align-items: center;
+    }
+
+    body:not(.theme-handdrawn) .title {
+      display: flex;
+      gap: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.2;
+      margin-bottom: 6px;
+      transform: none;
+    }
+
+    body:not(.theme-handdrawn) .crayon-circle {
+      padding: 0;
+    }
+
+    body:not(.theme-handdrawn) .crayon-circle::after,
+    body:not(.theme-handdrawn) .hand-arrow {
+      display: none;
+    }
+
+    body:not(.theme-handdrawn) .row { margin: 4px 0; }
+    body:not(.theme-handdrawn) .hint { color: #666; font-size: 12px; line-height: 1.4; font-style: normal; }
+
+    body:not(.theme-handdrawn) #status {
+      margin: 4px 0;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      transform: none;
+      font-family: inherit;
+      line-height: normal;
+    }
+
+    body:not(.theme-handdrawn) .legend {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 0;
+      transform: none;
+    }
+
+    body:not(.theme-handdrawn) .swatch {
+      width: 18px;
+      height: 3px;
+      box-shadow: none;
+    }
+
+    body:not(.theme-handdrawn) #walkControls {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      transform: none;
+    }
+
+    body:not(.theme-handdrawn) .field {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 6px 0;
+    }
+
+    body:not(.theme-handdrawn) .field label {
+      color: #333;
+      min-width: 42px;
+      font-family: inherit;
+      font-weight: 400;
+      transform: none;
+    }
+
+    body:not(.theme-handdrawn) select,
+    body:not(.theme-handdrawn) input {
+      min-height: auto;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      color: #111;
+      font-family: inherit;
+      font-size: 13px;
+      padding: 5px 7px;
+      box-shadow: none;
+    }
+
+    body:not(.theme-handdrawn) input[type="number"] { width: 64px; }
+    body:not(.theme-handdrawn) button {
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #111;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 400;
+      font-size: 13px;
+      line-height: normal;
+      box-shadow: none;
+      transform: none;
+      transition: background 120ms ease;
+    }
+
+    body:not(.theme-handdrawn) #locateBtn,
+    body:not(.theme-handdrawn) #stopWalkBtn,
+    body:not(.theme-handdrawn) #clearBtn {
+      background: #fff;
+      color: #111;
+      transform: none;
+    }
+
+    body:not(.theme-handdrawn) button:disabled {
+      color: #999;
+      background: #fff;
+      cursor: progress;
+      box-shadow: none;
+    }
+
+    body:not(.theme-handdrawn) button:not(:disabled):hover {
+      background: #f5f5f5;
+      transform: none;
+      box-shadow: none;
+    }
+
+    body:not(.theme-handdrawn) button:not(:disabled):active {
+      background: #eee;
+      transform: none;
+      box-shadow: none;
+    }
+
+    body:not(.theme-handdrawn) .status-ok { color: #0a7; }
+    body:not(.theme-handdrawn) .status-err { color: #d33; }
+    body:not(.theme-handdrawn) .status-idle { color: #888; }
+
+    .theme-handdrawn #panel {
+      width: min(390px, calc(100vw - 22px));
+      padding: 16px 16px 18px;
+    }
+
+    .theme-handdrawn .panel-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px 12px;
+      align-items: start;
+    }
+
+    .theme-handdrawn .title {
+      min-width: 0;
+      margin: 2px 0 0;
+      font-size: 23px;
+      overflow-wrap: anywhere;
+    }
+
+    .theme-handdrawn .hand-arrow {
+      width: 52px;
+    }
+
+    .theme-handdrawn .panel-tools {
+      display: grid;
+      grid-template-columns: minmax(128px, 1fr) auto;
+      grid-column: 1 / -1;
+      gap: 8px;
+      align-items: center;
+      justify-content: stretch;
+      padding-top: 2px;
+    }
+
+    .theme-handdrawn #themeSelect {
+      max-width: none;
+      width: 100%;
+    }
+
+    .theme-handdrawn #collapseBtn {
+      white-space: nowrap;
+      min-width: 62px;
+    }
+
+    .theme-handdrawn #status {
+      margin: 12px 0 11px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+      transform: rotate(0.35deg);
+    }
+
+    .theme-handdrawn .legend {
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 6px 0 8px;
+    }
+
+    .theme-handdrawn #walkControls {
+      padding: 11px 12px;
+      margin: 10px 0 8px;
+      transform: none;
+    }
+
+    .theme-handdrawn .field {
+      display: grid;
+      grid-template-columns: 46px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      margin: 9px 0;
+    }
+
+    .theme-handdrawn .field label {
+      min-width: 0;
+    }
+
+    .theme-handdrawn input[type="number"] {
+      width: 100%;
+      max-width: 92px;
+    }
+
+    .theme-handdrawn .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 13px;
+    }
+
+    .theme-handdrawn #locateBtn {
+      grid-column: 1 / -1;
+      min-height: 40px;
+    }
+
+    .theme-handdrawn #stopWalkBtn,
+    .theme-handdrawn #clearBtn {
+      min-height: 38px;
+    }
+
+    .theme-handdrawn #panel.is-collapsed {
+      min-width: 0;
+      width: min(390px, calc(100vw - 22px));
+    }
+
+    @media (max-width: 560px) {
+      #panel {
+        top: auto;
+        right: 10px;
+        bottom: 10px;
+        width: calc(100vw - 20px);
+        max-height: 58vh;
+        overflow: auto;
+        transform: rotate(-0.25deg);
+      }
+      .title { font-size: 22px; }
+      button { flex: 1 1 120px; }
+    }
   </style>
 </head>
 <body>
 <div id="map"></div>
 <div id="panel">
-  <div class="title">kc_locationspoof</div>
-  <div class="row" id="status">
-    <span class="status-idle">未注入</span>
+  <div class="panel-header">
+    <div class="title">
+      <span class="crayon-circle">kc_locspoof</span>
+      <svg viewBox="0 0 80 30" class="hand-arrow" aria-hidden="true">
+        <path d="M5 15 Q 25 8 40 18 T 70 12" stroke="var(--hd-ink)" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M62 6 L 75 12 L 68 22" stroke="var(--hd-ink)" stroke-width="2.5" fill="none" stroke-linecap="round" />
+      </svg>
+    </div>
+    <div class="panel-tools">
+      <label class="sr-only" for="themeSelect">UI 樣式</label>
+      <select id="themeSelect" aria-label="UI 樣式">
+        <option value="default">原本樣式</option>
+        <option value="handdrawn">手繪風格</option>
+      </select>
+      <button id="collapseBtn" type="button" aria-expanded="true">收合</button>
+    </div>
   </div>
-  <div class="row hint">右鍵（手機長按）地圖選位置</div>
-  <div class="row"><button id="clearBtn">清除 spoof</button></div>
+  <div id="panelBody">
+    <div class="row" id="status">
+      <span class="status-idle">未注入</span>
+    </div>
+    <div class="row hint" id="hint">右鍵（手機長按）地圖選位置</div>
+    <div class="row hint legend">
+      <span><i class="swatch swatch-plan"></i>本段</span>
+      <span><i class="swatch swatch-trail"></i>已走</span>
+      <span><i class="swatch swatch-queue"></i>排隊</span>
+    </div>
+    <div class="field">
+      <label for="modeSelect">模式</label>
+      <select id="modeSelect">
+        <option value="single">單點模式</option>
+        <option value="multi">多點模式</option>
+      </select>
+    </div>
+    <div id="walkControls">
+      <div class="field">
+        <label for="walkSpeed">速度</label>
+        <input id="walkSpeed" type="number" min="1" max="20" step="0.5" value="4">
+        <span>km/h</span>
+      </div>
+      <div class="field">
+        <label for="walkInterval">更新</label>
+        <input id="walkInterval" type="number" min="1" max="30" step="1" value="5">
+        <span>秒</span>
+      </div>
+    </div>
+    <div class="row actions">
+      <button id="locateBtn">定位到目前位置</button>
+      <button id="stopWalkBtn" disabled>停止走路</button>
+      <button id="clearBtn">清除 spoof</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -50,24 +693,92 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 let marker = null;
+let currentMarker = null;
+let currentAccuracy = null;
+let targetMarker = null;
+let queuedTargetMarkers = [];
+let walkLine = null;
+let queueLine = null;
+let trailLine = null;
+let trailPoints = [];
+let currentLocation = null;
+let lastInjected = null;
+let walkTimer = null;
+let walkPoints = [];
+let walkIndex = 0;
+let walkRunId = 0;
+let walkCompleteHandler = null;
+let activeWalkMode = null;
+let multiTargets = [];
+let activeMultiTarget = null;
+const MAX_MULTI_TARGETS = 20;
+const panel = document.getElementById('panel');
 const statusEl = document.getElementById('status');
+const locateBtn = document.getElementById('locateBtn');
+const stopWalkBtn = document.getElementById('stopWalkBtn');
+const collapseBtn = document.getElementById('collapseBtn');
+const themeSelect = document.getElementById('themeSelect');
+const modeSelect = document.getElementById('modeSelect');
+const hintEl = document.getElementById('hint');
+const walkSpeedInput = document.getElementById('walkSpeed');
+const walkIntervalInput = document.getElementById('walkInterval');
+
+function readPreference(key, fallback) {
+  try {
+    return localStorage.getItem(key) || fallback;
+  } catch (_) {
+    return fallback;
+  }
+}
+
+function writePreference(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (_) {
+    // Ignore storage failures; controls still work for the current page.
+  }
+}
+
+function applyTheme(theme) {
+  const normalized = theme === 'handdrawn' ? 'handdrawn' : 'default';
+  document.body.classList.toggle('theme-handdrawn', normalized === 'handdrawn');
+  themeSelect.value = normalized;
+  writePreference('locspoof-theme', normalized);
+}
+
+function setPanelCollapsed(isCollapsed) {
+  panel.classList.toggle('is-collapsed', isCollapsed);
+  collapseBtn.textContent = isCollapsed ? '展開' : '收合';
+  collapseBtn.setAttribute('aria-expanded', String(!isCollapsed));
+  writePreference('locspoof-panel-collapsed', isCollapsed ? '1' : '0');
+}
+
+themeSelect.onchange = () => applyTheme(themeSelect.value);
+collapseBtn.onclick = () => setPanelCollapsed(!panel.classList.contains('is-collapsed'));
+applyTheme(readPreference('locspoof-theme', 'default'));
+setPanelCollapsed(readPreference('locspoof-panel-collapsed', '0') === '1');
 
 function setStatus(text, cls) {
   statusEl.innerHTML = `<span class="${cls}">${text}</span>`;
 }
 
-async function setLocation(lat, lon) {
+async function setLocation(lat, lon, options = {}) {
   try {
     const r = await fetch(`${API}/api/loc?lat=${lat}&lon=${lon}`);
     const j = await r.json();
     if (j.ok) {
-      setStatus(`已注入 ${lat.toFixed(6)}, ${lon.toFixed(6)} (seq=${j.seq})`, 'status-ok');
+      lastInjected = { lat, lon };
+      if (!options.quiet) {
+        setStatus(`已注入 ${lat.toFixed(6)}, ${lon.toFixed(6)} (seq=${j.seq})`, 'status-ok');
+      }
+      return j;
     } else {
       setStatus(`錯誤: ${j.error || '未知'}`, 'status-err');
     }
   } catch (e) {
     setStatus(`失敗: ${e.message}`, 'status-err');
   }
+  return null;
 }
 
 function placeMarker(lat, lon) {
@@ -75,19 +786,404 @@ function placeMarker(lat, lon) {
   marker = L.marker([lat, lon]).addTo(map);
 }
 
-map.on('contextmenu', (e) => {
+function placeTargetMarker(lat, lon) {
+  if (targetMarker) map.removeLayer(targetMarker);
+  targetMarker = L.marker([lat, lon]).addTo(map);
+}
+
+function placeCurrentLocation(lat, lon, accuracy) {
+  if (currentMarker) map.removeLayer(currentMarker);
+  if (currentAccuracy) map.removeLayer(currentAccuracy);
+  currentLocation = { lat, lon };
+
+  currentMarker = L.circleMarker([lat, lon], {
+    radius: 8,
+    color: '#1363df',
+    weight: 3,
+    fillColor: '#2f80ed',
+    fillOpacity: 0.75
+  }).addTo(map);
+
+  if (Number.isFinite(accuracy) && accuracy > 0) {
+    currentAccuracy = L.circle([lat, lon], {
+      radius: accuracy,
+      color: '#2f80ed',
+      weight: 1,
+      fillColor: '#2f80ed',
+      fillOpacity: 0.08
+    }).addTo(map);
+  }
+}
+
+function setLocateBusy(isBusy) {
+  locateBtn.disabled = isBusy;
+  locateBtn.textContent = isBusy ? '定位中...' : '定位到目前位置';
+}
+
+function distanceMeters(a, b) {
+  const toRad = (deg) => deg * Math.PI / 180;
+  const earthRadius = 6371000;
+  const dLat = toRad(b.lat - a.lat);
+  const dLon = toRad(b.lon - a.lon);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const h = Math.sin(dLat / 2) ** 2
+    + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return 2 * earthRadius * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+function interpolateCoordinate(a, b, fraction) {
+  return {
+    lat: a.lat + (b.lat - a.lat) * fraction,
+    lon: a.lon + (b.lon - a.lon) * fraction
+  };
+}
+
+function buildWalkPoints(start, target, speedKmh, intervalSeconds) {
+  const totalMeters = distanceMeters(start, target);
+  if (totalMeters < 1) return [target];
+  const speedMps = Math.max(1, speedKmh) * 1000 / 3600;
+  const stepMeters = speedMps * Math.max(1, intervalSeconds);
+  const steps = Math.max(1, Math.ceil(totalMeters / stepMeters));
+  const points = [];
+  for (let i = 1; i <= steps; i++) {
+    points.push(interpolateCoordinate(start, target, i / steps));
+  }
+  points[points.length - 1] = target;
+  return points;
+}
+
+function resolveWalkStart(spoofed, real) {
+  return spoofed || real || null;
+}
+
+function getMaxMultiTargets() {
+  return MAX_MULTI_TARGETS;
+}
+
+function canAppendMultiTarget(queue, activeCount = 0) {
+  return queue.length + activeCount < MAX_MULTI_TARGETS;
+}
+
+function appendMultiTarget(queue, target, activeCount = 0) {
+  if (!canAppendMultiTarget(queue, activeCount)) return false;
+  queue.push(target);
+  return true;
+}
+
+function getMultiTargetCount() {
+  return multiTargets.length + (activeMultiTarget ? 1 : 0);
+}
+
+function getWalkSettings() {
+  const speedKmh = Number(walkSpeedInput.value);
+  const intervalSeconds = Number(walkIntervalInput.value);
+  return {
+    speedKmh: Number.isFinite(speedKmh) ? Math.min(20, Math.max(1, speedKmh)) : 4,
+    intervalSeconds: Number.isFinite(intervalSeconds) ? Math.min(30, Math.max(1, intervalSeconds)) : 5
+  };
+}
+
+function setWalking(isWalking) {
+  stopWalkBtn.disabled = !isWalking;
+  walkSpeedInput.disabled = isWalking;
+  walkIntervalInput.disabled = isWalking;
+}
+
+function clearWalkVisuals() {
+  if (walkLine) {
+    map.removeLayer(walkLine);
+    walkLine = null;
+  }
+  if (targetMarker) {
+    map.removeLayer(targetMarker);
+    targetMarker = null;
+  }
+}
+
+function clearMultiTargetVisuals() {
+  queuedTargetMarkers.forEach((markerLayer) => map.removeLayer(markerLayer));
+  queuedTargetMarkers = [];
+  if (queueLine) {
+    map.removeLayer(queueLine);
+    queueLine = null;
+  }
+}
+
+function renderMultiTargets() {
+  clearMultiTargetVisuals();
+  const targets = [
+    ...(activeMultiTarget ? [activeMultiTarget] : []),
+    ...multiTargets
+  ];
+
+  targets.forEach((target, index) => {
+    const markerLayer = L.circleMarker([target.lat, target.lon], {
+      radius: index === 0 && activeMultiTarget ? 7 : 6,
+      color: index === 0 && activeMultiTarget ? '#f59f00' : '#4a86e0',
+      weight: 3,
+      fillColor: index === 0 && activeMultiTarget ? '#f7c84b' : '#4a86e0',
+      fillOpacity: index === 0 && activeMultiTarget ? 0.82 : 0.62
+    }).addTo(map);
+    queuedTargetMarkers.push(markerLayer);
+  });
+
+  if (targets.length >= 2) {
+    queueLine = L.polyline(
+      targets.map((target) => [target.lat, target.lon]),
+      { color: '#4a86e0', weight: 2, opacity: 0.78, dashArray: '4 8' }
+    ).addTo(map);
+  }
+}
+
+function clearMultiTargets() {
+  multiTargets = [];
+  activeMultiTarget = null;
+  clearMultiTargetVisuals();
+}
+
+function clearTrail() {
+  if (trailLine) {
+    map.removeLayer(trailLine);
+    trailLine = null;
+  }
+  trailPoints = [];
+}
+
+function appendTrailPoint(point) {
+  if (!point) return;
+  const last = trailPoints[trailPoints.length - 1];
+  if (!last || distanceMeters(last, point) > 0.5) {
+    trailPoints.push({ lat: point.lat, lon: point.lon });
+  }
+  if (trailLine) map.removeLayer(trailLine);
+  if (trailPoints.length >= 2) {
+    trailLine = L.polyline(
+      trailPoints.map((p) => [p.lat, p.lon]),
+      { color: '#00aa77', weight: 4, opacity: 0.78 }
+    ).addTo(map);
+  }
+}
+
+function stopWalk(message, options = {}) {
+  const { clearQueue = true, clearVisuals = true } = options;
+  if (walkTimer) {
+    clearInterval(walkTimer);
+    walkTimer = null;
+  }
+  walkRunId += 1;
+  walkPoints = [];
+  walkIndex = 0;
+  walkCompleteHandler = null;
+  activeWalkMode = null;
+  if (clearQueue) clearMultiTargets();
+  if (clearVisuals) clearWalkVisuals();
+  setWalking(false);
+  if (message) setStatus(message, 'status-idle');
+}
+
+function finishWalk(message) {
+  if (walkTimer) {
+    clearInterval(walkTimer);
+    walkTimer = null;
+  }
+  walkRunId += 1;
+  walkPoints = [];
+  walkIndex = 0;
+  const onComplete = walkCompleteHandler;
+  walkCompleteHandler = null;
+  activeWalkMode = null;
+  setWalking(false);
+  clearWalkVisuals();
+  if (message) setStatus(message, 'status-idle');
+  if (onComplete) {
+    onComplete();
+  } else if (multiTargets.length) {
+    startNextMultiTarget();
+  }
+}
+
+async function stepWalk(runId = walkRunId) {
+  if (runId !== walkRunId) return;
+  if (!walkPoints.length || walkIndex >= walkPoints.length) {
+    finishWalk(activeWalkMode === 'multi' ? '已抵達路點' : '已抵達目標點');
+    return;
+  }
+
+  const point = walkPoints[walkIndex];
+  const result = await setLocation(point.lat, point.lon, { quiet: true });
+  if (runId !== walkRunId) return;
+  if (!result) {
+    stopWalk('走路已停止：注入失敗');
+    return;
+  }
+
+  walkIndex += 1;
+  placeMarker(point.lat, point.lon);
+  appendTrailPoint(point);
+  setStatus(
+    `走路中 ${walkIndex}/${walkPoints.length}: ${point.lat.toFixed(6)}, ${point.lon.toFixed(6)}`,
+    'status-ok'
+  );
+
+  if (walkIndex >= walkPoints.length) {
+    finishWalk(activeWalkMode === 'multi' ? '已抵達路點' : '已抵達目標點');
+  }
+}
+
+async function startWalkTo(target, options = {}) {
+  const { replace = true, mode = 'single', onComplete = null } = options;
+  if (walkTimer || walkPoints.length) {
+    if (!replace) return false;
+    stopWalk(null);
+  }
+  if (replace) clearMultiTargets();
+
+  let start = resolveWalkStart(lastInjected, currentLocation);
+  if (!lastInjected && currentLocation) {
+    if (!confirm('尚未有注入起點，要先用目前位置作為起點嗎？')) return false;
+    placeMarker(currentLocation.lat, currentLocation.lon);
+    const result = await setLocation(currentLocation.lat, currentLocation.lon);
+    if (!result) return false;
+    start = currentLocation;
+  }
+
+  if (!start) {
+    setStatus('請先定位到目前位置，或先注入一個起點', 'status-err');
+    return false;
+  }
+
+  const { speedKmh, intervalSeconds } = getWalkSettings();
+  const runId = ++walkRunId;
+  walkCompleteHandler = onComplete;
+  activeWalkMode = mode;
+  walkPoints = buildWalkPoints(start, target, speedKmh, intervalSeconds);
+  walkIndex = 0;
+  clearWalkVisuals();
+  appendTrailPoint(start);
+  placeTargetMarker(target.lat, target.lon);
+  walkLine = L.polyline(
+    [[start.lat, start.lon], [target.lat, target.lon]],
+    { color: '#f59f00', weight: 3, dashArray: '8 8' }
+  ).addTo(map);
+  setWalking(true);
+  const prefix = mode === 'multi'
+    ? `多點模式：前往路點，剩餘 ${multiTargets.length} 點`
+    : '單點模式：開始走到目標點';
+  setStatus(`${prefix}，共 ${walkPoints.length} 步`, 'status-idle');
+  await stepWalk(runId);
+  if (runId === walkRunId && walkPoints.length) {
+    walkTimer = setInterval(() => stepWalk(runId), intervalSeconds * 1000);
+  }
+  return true;
+}
+
+async function startNextMultiTarget() {
+  if (walkTimer || walkPoints.length) return;
+  if (!multiTargets.length) {
+    activeMultiTarget = null;
+    renderMultiTargets();
+    setStatus('多點模式完成', 'status-ok');
+    return;
+  }
+
+  const nextTarget = multiTargets.shift();
+  activeMultiTarget = nextTarget;
+  renderMultiTargets();
+  const started = await startWalkTo(nextTarget, {
+    replace: false,
+    mode: 'multi',
+    onComplete: () => {
+      activeMultiTarget = null;
+      renderMultiTargets();
+      if (multiTargets.length) {
+        startNextMultiTarget();
+      } else {
+        setStatus('多點模式完成', 'status-ok');
+      }
+    }
+  });
+
+  if (!started) {
+    multiTargets.unshift(nextTarget);
+    activeMultiTarget = null;
+    renderMultiTargets();
+  }
+}
+
+function queueMultiTarget(target) {
+  const activeCount = activeMultiTarget ? 1 : 0;
+  if (!appendMultiTarget(multiTargets, target, activeCount)) {
+    setStatus(`多點模式最多只能同時存在 ${MAX_MULTI_TARGETS} 個點`, 'status-err');
+    return false;
+  }
+
+  renderMultiTargets();
+  setStatus(`已加入路點 ${getMultiTargetCount()}/${MAX_MULTI_TARGETS}`, 'status-idle');
+  if (!walkTimer && !walkPoints.length) {
+    startNextMultiTarget();
+  }
+  return true;
+}
+
+modeSelect.onchange = () => {
+  hintEl.textContent = modeSelect.value === 'multi'
+    ? `右鍵（手機長按）追加路點，最多 ${MAX_MULTI_TARGETS} 點`
+    : '右鍵（手機長按）選目標；再點會改目標';
+};
+modeSelect.onchange();
+
+map.on('contextmenu', async (e) => {
   const { lat, lng } = e.latlng;
-  if (!confirm(`注入位置？\n\n緯度: ${lat.toFixed(6)}\n經度: ${lng.toFixed(6)}`)) return;
-  placeMarker(lat, lng);
-  setLocation(lat, lng);
+  if (modeSelect.value === 'single') {
+    if (!confirm(`單點模式：走到這個目標？\n\n緯度: ${lat.toFixed(6)}\n經度: ${lng.toFixed(6)}`)) return;
+    startWalkTo({ lat, lon: lng });
+    return;
+  }
+
+  if (!confirm(`多點模式：加入路點？\n\n緯度: ${lat.toFixed(6)}\n經度: ${lng.toFixed(6)}`)) return;
+  queueMultiTarget({ lat, lon: lng });
 });
 
+locateBtn.onclick = () => {
+  if (!navigator.geolocation) {
+    setStatus('此瀏覽器不支援目前位置定位', 'status-err');
+    return;
+  }
+
+  setLocateBusy(true);
+  setStatus('正在取得目前位置...', 'status-idle');
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude, accuracy } = pos.coords;
+      placeCurrentLocation(latitude, longitude, accuracy);
+      map.setView([latitude, longitude], 16);
+      const suffix = lastInjected ? '，下一段會從上一個注入點續走' : '（尚未注入）';
+      setStatus(`已定位 ${latitude.toFixed(6)}, ${longitude.toFixed(6)}${suffix}`, 'status-idle');
+      setLocateBusy(false);
+    },
+    (err) => {
+      setStatus(`定位失敗: ${err.message}`, 'status-err');
+      setLocateBusy(false);
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 30000
+    }
+  );
+};
+
 document.getElementById('clearBtn').onclick = async () => {
+  stopWalk();
+  clearWalkVisuals();
   try {
     const r = await fetch(`${API}/api/clear`, { method: 'POST' });
     const j = await r.json();
     if (j.ok) {
       if (marker) { map.removeLayer(marker); marker = null; }
+      lastInjected = null;
+      clearTrail();
       setStatus('已清除，回真實 GPS', 'status-idle');
     } else {
       setStatus(`清除失敗: ${j.error || '未知'}`, 'status-err');
@@ -97,11 +1193,17 @@ document.getElementById('clearBtn').onclick = async () => {
   }
 };
 
+stopWalkBtn.onclick = () => {
+  stopWalk('走路已停止');
+};
+
 // Restore state from daemon on page load
 fetch(`${API}/api/status`).then(r => r.json()).then(j => {
   if (j.last_loc) {
     const [lat, lon] = j.last_loc;
+    lastInjected = { lat, lon };
     placeMarker(lat, lon);
+    appendTrailPoint(lastInjected);
     map.setView([lat, lon], 13);
     setStatus(`已注入 ${lat.toFixed(6)}, ${lon.toFixed(6)} (seq=${j.last_seq})`, 'status-ok');
   }
