@@ -28,8 +28,27 @@ final class WalkController: ObservableObject {
     @Published private(set) var queue = WalkQueue()
     @Published var mode: MapMode = .teleport
 
+    /// 注入失敗、正在原地重試時的說明文字。恢復後回 nil。
+    @Published private(set) var stallReason: String?
+
+    /// 上一次「非使用者操作」導致停止的原因。使用者自己按停止時為 nil。
+    @Published private(set) var lastStopReason: String?
+
     /// 使用者上次選的速度、開 App 自動還原。
     @AppStorage("walk_speed_kmh") var savedSpeedKmh: Double = 4.0
+
+    /// 單格 GPS 注入失敗後、願意原地重試多久才真的放棄。
+    ///
+    /// helper 端本來就會 transient 斷線再自己接回來（`Helper.retryLoop`：subprocess
+    /// 死掉 → cleanup → sleep 5s → 重建 tunnel + dvt）。實測 tunnel 重建含 pmd
+    /// 重連約十幾秒到數十秒，`/Library/Logs/locspoof-helper.err.log` 平均一天會發生
+    /// 兩三次。舊版一次失敗就 `cancel()` 整段走路，等於把 helper 設計好的自我復原
+    /// 全部浪費掉 —— 走路走一走無預警停掉的元凶。
+    private static let injectRetryWindow: TimeInterval = 180
+
+    /// 兩次重試之間的間隔。跟 helper 的 `retrySleepSeconds`（5s）同數量級即可，
+    /// 取小一點是為了 helper 一恢復就馬上接回去、少掉一格空窗。
+    private static let injectRetryInterval: Duration = .seconds(2)
 
     private let client: DaemonClient
     private weak var status: StatusModel?
@@ -185,6 +204,8 @@ final class WalkController: ObservableObject {
         queue.currentIndex = 0
         queue.paused = false
         queue.running = true
+        stallReason = nil
+        lastStopReason = nil
 
         worker?.cancel()
         worker = Task { [weak self] in
@@ -196,11 +217,20 @@ final class WalkController: ObservableObject {
         queue.paused = false
     }
 
+    /// 使用者主動停止（按「停止」/「清空」/「恢復真實 GPS」），不留停止原因。
     func cancel() {
+        stop(reason: nil)
+    }
+
+    /// 停止走路。`reason` 非 nil 代表是 app 自己判定要停（例如連線久久不恢復），
+    /// 會顯示在 UI 上 —— 舊版這條路徑靜默終止，使用者只看到走路莫名停掉。
+    func stop(reason: String?) {
         worker?.cancel()
         worker = nil
         queue.running = false
         queue.paused = false
+        stallReason = nil
+        lastStopReason = reason
         // 把走路中目標標回 pending（讓 UI 看起來乾淨）
         for t in queue.targets where t.status == .walking || t.status == .waitingUser {
             t.status = .pending
@@ -233,12 +263,8 @@ final class WalkController: ObservableObject {
             let path = Pathfinder.buildPath(from: cur, to: target.coordinate, speedKmh: speedKmh)
             for step in path {
                 if Task.isCancelled { return }
-                do {
-                    try await client.inject(lat: step.lat, lon: step.lon)
-                } catch {
-                    cancel()
-                    return
-                }
+                // 注入失敗不再直接終止整段走路 —— 原地重試撐過 helper 重連空窗。
+                guard await injectTolerantly(step) else { return }
                 cur = step
                 try? await Task.sleep(for: .seconds(Pathfinder.tickSeconds))
             }
@@ -258,5 +284,37 @@ final class WalkController: ObservableObject {
             queue.currentIndex = idx + 1
         }
         queue.running = false
+    }
+
+    /// 送一格 GPS，transient 失敗就原地重試（不前進、不改 `cur`），直到成功或
+    /// 超過 `injectRetryWindow`。
+    ///
+    /// 回傳 `true` = 這格送出去了、可以走下一格；`false` = 已放棄（走路已停止，
+    /// 或 Task 被取消），呼叫端直接 return。
+    ///
+    /// 重試期間不推進路徑，所以 helper 恢復後會從中斷的同一點接回去，不會為了
+    /// 補進度而瞬移一大段（那才是真的會被伺服器端行為模型抓）。
+    private func injectTolerantly(_ step: Coordinate) async -> Bool {
+        var attempt = 0
+        let startedAt = Date()
+        while true {
+            if Task.isCancelled { return false }
+            do {
+                try await client.inject(lat: step.lat, lon: step.lon)
+                if stallReason != nil { stallReason = nil }
+                return true
+            } catch {
+                attempt += 1
+                let stalledFor = Date().timeIntervalSince(startedAt)
+                guard stalledFor < Self.injectRetryWindow else {
+                    let minutes = Int(Self.injectRetryWindow / 60)
+                    stop(reason: "與 Helper 的連線中斷超過 \(minutes) 分鐘仍未恢復，已停止走路。"
+                         + "檢查 iPhone 是否還接著、已解鎖。")
+                    return false
+                }
+                stallReason = "連線中斷、重試中…（第 \(attempt) 次、已等 \(Int(stalledFor)) 秒）"
+                try? await Task.sleep(for: Self.injectRetryInterval)
+            }
+        }
     }
 }
