@@ -17,10 +17,16 @@ final class WalkStepTrigger: ObservableObject {
     }
 
     /// 對應的 Mac 捷徑名稱。user 要先在 Mac「捷徑」app 內建好同名 shortcut。
-    static let shortcutName = "FlipStepFocus"
+    /// `nonisolated`：常數本身沒有 actor 狀態，要給背景 queue 上的 fireOnce() 讀。
+    nonisolated static let shortcutName = "FlipStepFocus"
 
     /// 兩次 fire 之間 sleep 秒數。
     static let sleepSeconds: UInt64 = 20
+
+    /// 單次捷徑執行的容忍上限。`shortcuts run` 有機會久久不返回（等 Shortcuts
+    /// app 起來、等 iCloud 同步、跳權限視窗），逾時就砍掉、下一輪再試，
+    /// 不要讓它拖著走路一起停。
+    nonisolated static let runTimeoutSeconds: Int = 15
 
     private weak var walk: WalkController?
     private weak var status: StatusModel?
@@ -69,11 +75,34 @@ final class WalkStepTrigger: ObservableObject {
         loop = nil
     }
 
-    private func fireOnce() async {
-        let proc = Process()
-        proc.launchPath = "/usr/bin/shortcuts"
-        proc.arguments = ["run", Self.shortcutName]
-        try? proc.run()
-        proc.waitUntilExit()
+    /// 跑一次捷徑。刻意宣告 `nonisolated`、整段丟到背景 queue —— 舊版是
+    /// MainActor 隔離的，`waitUntilExit()` 會把主執行緒整整卡住一次捷徑的執行
+    /// 時間。走路 worker 也在 MainActor 上，主執行緒被卡住的期間 1Hz 的 GPS
+    /// tick 跟整個 UI 都跟著頓住；捷徑真的卡死的話 app 會整個凍結、走路看起來
+    /// 就是「停了」。
+    private nonisolated func fireOnce() async {
+        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+            DispatchQueue.global(qos: .utility).async {
+                let proc = Process()
+                proc.executableURL = URL(fileURLWithPath: "/usr/bin/shortcuts")
+                proc.arguments = ["run", Self.shortcutName]
+                do {
+                    try proc.run()
+                } catch {
+                    cont.resume()
+                    return
+                }
+                let watchdog = DispatchWorkItem {
+                    if proc.isRunning { proc.terminate() }
+                }
+                DispatchQueue.global().asyncAfter(
+                    deadline: .now() + .seconds(Self.runTimeoutSeconds),
+                    execute: watchdog
+                )
+                proc.waitUntilExit()
+                watchdog.cancel()
+                cont.resume()
+            }
+        }
     }
 }

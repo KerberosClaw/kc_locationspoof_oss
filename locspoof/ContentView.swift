@@ -516,6 +516,18 @@ struct ContentView: View {
                     .disabled(walk.queue.targets.isEmpty)
             }
 
+            // 連線中斷時原地重試，走路不會停 —— 但要讓使用者看得到正在發生什麼，
+            // 否則畫面上就只是「地圖不動了」。
+            if let stall = walk.stallReason {
+                Label(stall, systemImage: "arrow.triangle.2.circlepath")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            } else if let reason = walk.lastStopReason {
+                Label(reason, systemImage: "exclamationmark.triangle")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Toggle("走路時連動步數更新", isOn: $walkStepTrigger.enabled)

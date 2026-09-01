@@ -29,6 +29,16 @@ struct DaemonStatus: Sendable, Equatable {
 actor DaemonClient {
     let baseURL: URL
 
+    /// Helper 自己等 dvt 回應的上限是 5s（`Helper.inject` / `Helper.clear` 的
+    /// `makeDeadline(seconds: 5)`），超過才會殺 dvt 自救。app 端要比它寬，否則
+    /// 一次 2~5s 的慢回應會變成「app 判失敗、helper 判正常」的假故障。
+    static let mutationTimeout: TimeInterval = 6.0
+
+    /// status 只是輪詢顯示用，可以短。但 helper 的 HTTP server 是單一 serial
+    /// queue（`HTTPServer.queue`），走路時 1Hz 的 inject 會排在前面，所以也不能
+    /// 太短，否則狀態燈會無謂閃爍成「Helper 離線」。
+    static let statusTimeout: TimeInterval = 3.0
+
     init(baseURL: URL = URL(string: "http://127.0.0.1:8765")!) {
         self.baseURL = baseURL
     }
@@ -43,7 +53,7 @@ actor DaemonClient {
 
     func status() async throws -> DaemonStatus {
         var req = URLRequest(url: baseURL.appendingPathComponent("api/status"))
-        req.timeoutInterval = 1.5
+        req.timeoutInterval = Self.statusTimeout
         let (data, _) = try await URLSession.shared.data(for: req)
         let json = try JSONDecoder().decode(StatusJSON.self, from: data)
         let coord = json.last_loc.flatMap { arr -> Coordinate? in
@@ -69,7 +79,7 @@ actor DaemonClient {
             URLQueryItem(name: "lon", value: String(lon)),
         ]
         var req = URLRequest(url: comp.url!)
-        req.timeoutInterval = 2.0
+        req.timeoutInterval = Self.mutationTimeout
         let (_, resp) = try await URLSession.shared.data(for: req)
         guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else {
             throw URLError(.badServerResponse)
@@ -79,7 +89,7 @@ actor DaemonClient {
     func clear() async throws {
         var req = URLRequest(url: baseURL.appendingPathComponent("api/clear"))
         req.httpMethod = "POST"
-        req.timeoutInterval = 2.0
+        req.timeoutInterval = Self.mutationTimeout
         let (_, resp) = try await URLSession.shared.data(for: req)
         guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else {
             throw URLError(.badServerResponse)
